@@ -11,4 +11,11 @@ import UIKit
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
+
+    func applicationDidFinishLaunching(_ application: UIApplication) {
+        if let navigationController = window?.rootViewController as? UINavigationController,
+            let mainViewController = navigationController.topViewController as? MainViewController {
+            mainViewController.viewModel = MainViewModel()
+        }
+    }
 }
