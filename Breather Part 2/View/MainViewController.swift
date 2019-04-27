@@ -18,7 +18,9 @@ class MainViewController: UIViewController {
 
     // MARK: - Outlets
 
-    // Views
+    @IBOutlet weak var scrollView: UIScrollView!
+
+    // Views for binding
     @IBOutlet weak var cityLabel: UILabel!
     @IBOutlet weak var weatherImageView: UIImageView!
     @IBOutlet weak var temperatureLabel: UILabel!
@@ -39,13 +41,23 @@ class MainViewController: UIViewController {
     // MARK: - Private Properties
 
     private let refreshSubject = PublishSubject<Void>()
+    private let refreshControl = UIRefreshControl()
     private let disposeBag = DisposeBag()
 
     // MARK: - Lifecycle
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(willEnterForeground),
+                                               name: UIApplication.willEnterForegroundNotification,
+                                               object: nil)
         bindViewModel()
+        setupRefreshControl()
+        refresh()
+    }
+
+    @objc private func willEnterForeground() {
         refresh()
     }
 
@@ -65,6 +77,7 @@ class MainViewController: UIViewController {
             .subscribe(viewModel.input.aqiStandard)
             .disposed(by: disposeBag)
         // Outputs
+        // - Data
         viewModel.output.city.drive(cityLabel.rx.text).disposed(by: disposeBag)
         viewModel.output.weatherImage.drive(weatherImageView.rx.image).disposed(by: disposeBag)
         viewModel.output.temperature.drive(temperatureLabel.rx.text).disposed(by: disposeBag)
@@ -83,16 +96,34 @@ class MainViewController: UIViewController {
         }).disposed(by: disposeBag)
         viewModel.output.aqi.drive(aqiLabel.rx.text).disposed(by: disposeBag)
         viewModel.output.mainPollutant.drive(onNext: { [unowned self] text in
-            self.mainPollutantLabel.setAttributedTextWithSubscripts(text: text, indicesOfSubscripts: text.indicesOfNumbers)
+            self.mainPollutantLabel.setAttributedTextWithSubscripts(
+                text: text,
+                indicesOfSubscripts: text.indicesOfNumbers)
         }).disposed(by: disposeBag)
         viewModel.output.asthmaRisk.drive(asthmaRiskLabel.rx.text).disposed(by: disposeBag)
         viewModel.output.asthmaRiskColour.drive(onNext: { [unowned self] color in
             self.asthmaRiskLabel.textColor = color
         }).disposed(by: disposeBag)
         viewModel.output.asthmaProbability.drive(asthmaProbabilityLabel.rx.text).disposed(by: disposeBag)
+        // - Loading
+        viewModel.output.isLoading.drive(onNext: { [unowned self] isLoading in
+            self.showLoadingIndicators(force: isLoading)
+        }).disposed(by: disposeBag)
+    }
+
+    private func setupRefreshControl() {
+        refreshControl.addTarget(self, action: #selector(refresh), for: .valueChanged)
+        scrollView.refreshControl = refreshControl
     }
 
     @objc private func refresh() {
         refreshSubject.onNext(())
+    }
+
+    private func showLoadingIndicators(force: Bool) {
+        UIApplication.shared.isNetworkActivityIndicatorVisible = force
+        if !force {
+            refreshControl.endRefreshing()
+        }
     }
 }

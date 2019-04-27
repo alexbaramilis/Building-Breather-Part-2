@@ -31,6 +31,7 @@ class MainViewModel: ViewModel {
     let output: Output
 
     struct Output {
+        // Data
         let city: Driver<String>
         let weatherImage: Driver<UIImage?>
         let temperature: Driver<String>
@@ -46,7 +47,11 @@ class MainViewModel: ViewModel {
         let asthmaRisk: Driver<String>
         let asthmaRiskColour: Driver<UIColor>
         let asthmaProbability: Driver<String>
+        // Loading
+        let isLoading: Driver<Bool>
     }
+
+    private let isLoadingSubject = PublishSubject<Bool>()
 
     // MARK: - Private properties
 
@@ -123,10 +128,18 @@ class MainViewModel: ViewModel {
                         mainPollutant: mainPollutant,
                         asthmaRisk: asthmaRisk,
                         asthmaRiskColour: asthmaRiskColour,
-                        asthmaProbability: asthmaProbability)
+                        asthmaProbability: asthmaProbability,
+                        isLoading: isLoadingSubject.asDriver(onErrorJustReturn: false))
 
         viewDidRefreshSubject
+            .do(onNext: { [unowned self] _ in
+                self.isLoadingSubject.onNext(true)
+            })
+            .delay(RxTimeInterval(3), scheduler: MainScheduler.instance)
             .map { CityConditions.sampleData() }
+            .do(onNext: { [unowned self] _ in
+                self.isLoadingSubject.onNext(false)
+            })
             .subscribe(onNext: { [unowned self] cityConditions in
                 self.cityConditionsSubject.onNext(cityConditions)
             })

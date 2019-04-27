@@ -292,6 +292,7 @@
                         <outlet property="humidityLabel" destination="cut-zr-9cS" id="9Nk-M4-nBB"/>
                         <outlet property="mainPollutantLabel" destination="KRo-wZ-2Sg" id="cs3-Kj-1iM"/>
                         <outlet property="pressureLabel" destination="4Ki-W1-06a" id="uOX-OS-HIK"/>
+                        <outlet property="scrollView" destination="HKx-my-oEc" id="oiH-lQ-Hwk"/>
                         <outlet property="temperatureLabel" destination="zcI-Xy-Hxl" id="tUq-9F-S5P"/>
                         <outlet property="weatherImageView" destination="Xe5-fc-Awd" id="MdB-3B-LMq"/>
                         <outlet property="windDirectionImageView" destination="gJr-YH-faE" id="t4C-me-1Xj"/>
